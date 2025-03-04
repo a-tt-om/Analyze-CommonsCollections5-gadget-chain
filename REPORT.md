@@ -162,7 +162,7 @@ _Đoạn code tạo ra payload_
 
 Đối tượng `execArgs` được tạo với kiểu String có giá trị là `command` do người dùng truyền vào, tùy vào câu lệnh mà người tạo payload muốn thực thi.
 
-![debug command](debug_command.png)
+![debug command](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_command.png)
 
 ---
 
