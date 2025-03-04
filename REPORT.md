@@ -503,7 +503,7 @@ Trong quá trình debug demo website, ta sử dụng IntelliJ IDEA để tận d
   - `LazyMap.get()`: Chuẩn bị kích hoạt ChainedTransformer
     ![lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/lazymap_get.png)
   - `ChainedTransformer.transform()`: Phân tích từng bước transformer.
-    ![ChainedTransformer.tranform()](/chainedtransformer_transform.png)
+    ![ChainedTransformer.tranform()](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/chainedtransformer_transform.png)
   - `ConstantTransformer.transform()`:
     ![constanttransformer.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/constanttransformer.png)
   - `InvokerTransformer.transform()`: Xem lệnh hệ thống thực thi.
