@@ -578,6 +578,7 @@ Chuỗi Transfomer diễn ra như sau:
 ![Ví dụ về Reflection](./image/debug2_chainedtransformer_loop_1_6.png)
 
 Với cách thông thường:
+
 ![Ví dụ về Reflection](./image/debug2_chainedtransformer_loop_1_7.png)
 
 Với dùng Reflection:
