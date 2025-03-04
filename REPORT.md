@@ -576,8 +576,10 @@ Chuỗi Transfomer diễn ra như sau:
 
 Ở đây, `Java Reflection API` được dùng để gọi gián tiếp một method. API này cho phép gọi một method của bất kỳ class nào. Một ví dụ về invoke có thể lấy method từ class khác:
 ![Ví dụ về Reflection](./image/debug2_chainedtransformer_loop_1_6.png)
+
 Với cách thông thường:
 ![Ví dụ về Reflection](./image/debug2_chainedtransformer_loop_1_7.png)
+
 Với dùng Reflection:
 ![Ví dụ về Reflection](./image/debug2_chainedtransformer_loop_1_8.png)
 Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
