@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <script src="/js/common.js" defer></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+      }
+      .header {
+        background-color: #008080;
+        color: #fff;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .header .logo-container {
+        background-color: #fff;
+        padding: 5px;
+        border-radius: 10px;
+        display: inline-block;
+      }
+      .header img {
+        height: 50px;
+        border-radius: 5px;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        margin-left: 10px;
+      }
+      .logout-btn {
+        background-color: #fff;
+        color: #008080;
+        border: 2px solid #fff;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: all 0.3s;
+      }
+      .logout-btn:hover {
+        background-color: #006666;
+        color: #fff;
+        border-color: #006666;
+      }
+      .content {
+        max-width: 800px;
+        margin: 2rem auto;
+        background-color: #fff;
+        border: 2px solid #008080;
+        border-radius: 20px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        padding: 2rem;
+        text-align: center;
+      }
+      .content h2 {
+        color: #008080;
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+      .footer {
+        text-align: center;
+        padding: 1rem;
+        background-color: #008080;
+        color: #fff;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <div class="d-flex align-items-center">
+        <div class="logo-container">
+          <img src="./img/logo.png" alt="Company Logo" />
+        </div>
+        <h1>Welcome to Home</h1>
+      </div>
+      <a href="/index.html" class="logout-btn">Log out</a>
+    </div>
+    <div class="content">
+      <h2 id="welcomeMessage"></h2>
+    </div>
+    <div class="footer">&copy; Java Insecure Deserialization</div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
