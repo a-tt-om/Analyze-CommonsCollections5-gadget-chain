@@ -94,7 +94,7 @@ MyObject obj = (MyObject) ois.readObject();  // Đây là nơi xảy ra lỗi n�
 
 Ở endpoint `/login` và `/home`, quá trình xử lý cookie bị ảnh hưởng bởi việc deserialize mà không có biện pháp kiểm tra an toàn. Đoạn code xử lý cookie dưới đây:
 
-![serial_deserial.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/serial_deserial.png)
+![serial_deserial.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/serial_deserial.png)
 
 <div align="center">
 
@@ -103,7 +103,7 @@ _Method Serialize và Deserialize sau đó base64_
 </div>
 <br><br>
 
-![login_home.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/login_home.png)
+![login_home.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/login_home.png)
 
 <div align="center">
 
@@ -137,7 +137,7 @@ Trong ngữ cảnh **Insecure Deserialization**, **gadget-chain** là một chu�
 
 ## **4.2. Phân tích chi tiết**
 
-![gadget_chain.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/gadget_chain.png)
+![gadget_chain.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/gadget_chain.png)
 
 <div align="center">
 
@@ -146,7 +146,7 @@ _Gadget-Chain CommonsCollections5_
 </div>
 <br></br>
 
-![code_gen_payload.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/code_gen_payload.png)
+![code_gen_payload.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/code_gen_payload.png)
 
 <div align="center">
 
@@ -158,28 +158,28 @@ _Đoạn code tạo ra payload_
 
 ### #1 Command được truyền vào
 
-![command.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/command.png)
+![command.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/command.png)
 
 Đối tượng `execArgs` được tạo với kiểu String có giá trị là `command` do người dùng truyền vào, tùy vào câu lệnh mà người tạo payload muốn thực thi.
 
-![debug command](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_command.png)
+![debug command](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_command.png)
 
 ---
 
 ### #2 Khởi tạo Transformer
 
-![fake_transform.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/fake_transform.png)
+![fake_transform.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/fake_transform.png)
 `Transformer` là một interface có phương thức `transform(Object input)`, nó nhận đầu vào là một giá trị rồi trả ra một giá trị khác. Ở đây đối tượng `transformerChain` được khởi tạo là một `ChainedTransformer` là một lớp con của Transformer, chứa một `ConstantTransformer(1)`. `ChainedTransformer` là một Transformer đặc biệt, nó nhận vào một danh sách `Transformer[]` và gọi lần lượt từng Transformer.
 
 Ban đầu ta chỉ khởi tạo `ConstantTransformer(1)`, vì nó chỉ trả về 1 nên vô hại, tránh thực thi payload ngay, sau đó ta sẽ đổi nó thành payload thực sự sau.
 
-![debug_fake_chain.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_fake_chain.png)
+![debug_fake_chain.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_fake_chain.png)
 
 ---
 
 ### #3 Chuỗi Transformer thực
 
-![real_transformer.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/real_transformer.png)
+![real_transformer.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/real_transformer.png)
 Đối tượng `transformers` được khởi tạo là một mảng Transformer[] với 5 Transformer thành phần, lần lượt là:
 
 ```java
@@ -188,7 +188,7 @@ new ConstantTransformer(Runtime.class)
 
 `ConstantTransformer` là một Transformer trả về một giá trị nhất định, ở đây nó trả về `Runtime.class`
 
-![debug_runtimeclass.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_runtimeclass.png)
+![debug_runtimeclass.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_runtimeclass.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -253,7 +253,7 @@ new Object[] { "getRuntime", new Class[0] }
 
 Sau khi chạy qua `InvokerTransformer` này, nó trả ra `Runtime.getRuntime()` để chuẩn bị gọi method `exec`.
 
-![debug_getruntime.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_getruntime.png)
+![debug_getruntime.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_getruntime.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -266,7 +266,7 @@ new InvokerTransformer("invoke", new Class[] {
 
 Chức năng và cấu trúc vẫn giống như `InvokerTransformer` ở trên, lần này nó có nhiệm vụ thực thi `Runtime.getRuntime()` để lấy đối tượng `Runtime`.
 
-![debug_invoke.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_invoke.png)
+![debug_invoke.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_invoke.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -276,7 +276,7 @@ new InvokerTransformer("exec", new Class[] { String.class }, execArgs)
 
 Với `InvokerTransformer` cuối cùng, nó gọi method `exec()` của đối tượng `Runtime` (`Runtime().getRuntime().exec(command)` hay `Runtime().exec(command)`)để thực thi command được truyền vào.
 
-![debug_exec.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_exec.png)
+![debug_exec.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_exec.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -286,13 +286,13 @@ new ConstantTransformer(1)
 
 _ConstantTransformer_ cuối cùng trả về **1** để kết thúc và tránh lỗi.
 
-![debug_endconst.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_endconst.png)
+![debug_endconst.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_endconst.png)
 
 ---
 
 ### #4. Tạo LazyMap và TideMapEntry
 
-![lazymap_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/lazymap_tiedmap.png)
+![lazymap_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/lazymap_tiedmap.png)
 
 ```java
 final Map innerMap = new HashMap();
@@ -306,7 +306,7 @@ Trong thư viện _Apache Commons Collections_, `LazyMap` là một class, nó h
 - Dữ liệu thực tế vẫn được lưu trữ trong `innerMap`.
 - `transformerChain` đóng vai trò là factory: Khi một key không tồn tại trong innerMap, thay vì trả về null, LazyMap sẽ gọi `transformerChain.transform(key)` để tạo giá trị tương ứng. Ban đầu, `transformerChain` chỉ là một chain giả, chỉ trả về `1`, nhưng sẽ được thay đổi với chain thật sau.
 
-![debug_lazymap.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_lazymap.png)
+![debug_lazymap.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_lazymap.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -316,13 +316,13 @@ TiedMapEntry entry = new TiedMapEntry(lazyMap, "foo");
 
 `TiedMapEntry` cũng là một class trong `Apache Commons Collections`, được thiết kế để liên kết một Map với một key cụ thể. Đối tượng `entry` được tạo là một `TiedMapEntry` để kết nối `lazyMap` với key `"foo"`. Khi `entry.toString()` được gọi, nó sẽ gọi `lazyMap.get()` vì key "foo" chưa tồn tại và `transformerChain.transform()` sẽ được gọi, kich hoạt gadget-chain.
 
-![debug_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_tiedmap.png)
+![debug_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_tiedmap.png)
 
 ---
 
 ### #5. Gán vào `BadAttributeValueExpException` để kích hoạt tự động
 
-![BadAttribute.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/BadAttribute.png)
+![BadAttribute.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/BadAttribute.png)
 
 ```java
 BadAttributeValueExpException val = new BadAttributeValueExpException(null);
@@ -330,7 +330,7 @@ BadAttributeValueExpException val = new BadAttributeValueExpException(null);
 
 `BadAttributeValueExpException` là một class trong Java, được sử dụng khi có lỗi trong giá trị thuộc tính. `val` là một đối tượng của lớp này. Ở đây, khi khởi tạo đối tượng `val`, ta truyền `null` vào, vì giá trị này sẽ được thay đổi sau để ghi đè method `toString()` dẫn đến `toString()` của `TiedMapEntry` được kích hoạt.
 
-![debug_val.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_val.png)
+![debug_val.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_val.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -340,7 +340,7 @@ Field valfield = val.getClass().getDeclaredField("val");
 
 Đối tượng `valfield` thuộc class `Field`, method `getClass()` sẽ trả về đối tượng Class đại diện cho Class của `val`(BadAttributeValueExpException). Method `getDeclaredField(String fieldName)` là một phương thức của class `Class`, giúp lấy thông tin về một field cụ thể trong class. Nó trả về một đối tượng Field chứa thông tin về field "val", dù nó có là private, protected hay public.
 
-![debug_valfield.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_valfield.png)
+![debug_valfield.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_valfield.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -369,7 +369,7 @@ Method `setAccessible()` là một wrapper gọi `setAccessible(true)` từ Java
 
 `setAccessible()` được gọi ở đây giúp có thể thay đổi giá trị của trường private `val`.
 
-![debug_setAccess.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_setAccess.png)
+![debug_setAccess.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_setAccess.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -379,7 +379,7 @@ valfield.set(val, entry);
 
 Method `set(Object obj, Object value)` của class `Field` đặt giá trị của field `val` trong đối tượng `val` thành `entry`. `entry` trước đó đã được gán là một `TiedMapEntry`.
 
-![debug_setField.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_setField.png)
+![debug_setField.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_setField.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -398,7 +398,7 @@ public static void setFieldValue(final Object obj, final String fieldName, final
 
 `setFieldValue(obj, fieldName, value)` có chức năng chính tìm và thay đổi giá trị của một trường private hoặc protected - những field mà bình thường không thể truy cập từ bên ngoài class - trong một object. Trong trường hợp này, nó đặt giá trị của `iTransformers` trong `transformerChain` (chain giả) thành `transformers` (chain thật).
 
-![debug_replace.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_replace.png)
+![debug_replace.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_replace.png)
 
 ### #6. Kết thúc
 
@@ -452,7 +452,7 @@ Lấy ví dụ với `CommonsCollections5` được phân tích trong report nà
 java8 -jar ysoserial-all.jar CommonsCollections5 'sh -c $@|sh . echo open -a Calculator'
 ```
 
-![payload.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/payload.png)
+![payload.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/payload.png)
 
 Trong ứng dụng web demo lỗ hổng deserialization, dữ liệu người dùng được serialize rồi encode base64 sau đó lưu vào cookie, nên khi tạo payload cũng cần base64 để đưa vào cookie, payload sẽ được decode base64 rồi deserialize.
 
@@ -470,7 +470,7 @@ Link bài viết: https://codewhitesec.blogspot.com/2015/03/sh-or-getting-shell-
 
 Công cụ giúp tạo payload cho runtime.exec nhanh hơn: https://ares-x.com/tools/runtime-exec/
 
-![tool_runtime.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/tool_runtime.png)
+![tool_runtime.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/tool_runtime.png)
 
 ---
 
@@ -483,75 +483,75 @@ Trong quá trình debug demo website, ta sử dụng IntelliJ IDEA để tận d
 Để debug hiệu quả, các breakpoint được đặt tại các điểm chính trong ứng dụng và gadget-chain `CommonsCollections5` nhằm theo dõi luồng thực thi từ deserialize cookie đến RCE.
 
 - **Endpoint /login**: Đặt breakpoint để xem giá trị username khi đăng nhập, quan sát nó được serialize và thêm vào cookie `user_session`.
-  ![endpoint_login.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/endpoint_login.png)
+  ![endpoint_login.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/endpoint_login.png)
 
 - **Endpoint /home**: Breakpoint tại bước xử lý cookie trước khi deserialize, xác nhận dữ liệu đầu vào.
-  ![endpoint_home.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/endpoint_home.png)
+  ![endpoint_home.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/endpoint_home.png)
 
 - **Deserialize cookie**: Breakpoint tại bước deserialize cookie user_session để xem payload được truyền vào.
-  ![deserialize.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/deserialize.png)
+  ![deserialize.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/deserialize.png)
 
 - Gadget-chain `CommonsCollections5`: Breakpoint trong các lớp chính:
 
   - `BadAttributeValueExpException.readObject()`:
-    ![badattribute2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/badattribute2.png)
+    ![badattribute2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/badattribute2.png)
 
   - `TiedMapEntry.toString()`,`TiedMapEntry.getKey()` và `TiedMapEntry.getValue()`: Theo dõi kích hoạt LazyMap.
-    ![TiedMapEntry_toString.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/TiedMapEntry_toString.png)
-    ![TiedMapEntry_getValue.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/TiedMapEntry_getValue.png)
+    ![TiedMapEntry_toString.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/TiedMapEntry_toString.png)
+    ![TiedMapEntry_getValue.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/TiedMapEntry_getValue.png)
 
   - `LazyMap.get()`: Chuẩn bị kích hoạt ChainedTransformer
-    ![lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/lazymap_get.png)
+    ![lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/lazymap_get.png)
   - `ChainedTransformer.transform()`: Phân tích từng bước transformer.
-    ![ChainedTransformer.tranform()](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/chainedtransformer_transform.png)
+    ![ChainedTransformer.tranform()](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/chainedtransformer_transform.png)
   - `ConstantTransformer.transform()`:
-    ![constanttransformer.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/constanttransformer.png)
+    ![constanttransformer.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/constanttransformer.png)
   - `InvokerTransformer.transform()`: Xem lệnh hệ thống thực thi.
-    ![invokertransformer.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/invokertransformer.png)
+    ![invokertransformer.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/invokertransformer.png)
 
 ## **6.2. Debug chi tiết luồng thực thi**
 
 Khi truy cập vào trang web, ban đầu sẽ xuất hiện trang đăng nhập:
-![login_page.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/login_page.png)
+![login_page.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/login_page.png)
 Ta sẽ đăng kí trước khi đăng nhập, trang đăng ký:
-![register_page.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/register_page.png)
+![register_page.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/register_page.png)
 Khi sign up thành công, website sẽ báo "Registration Successfully":
-![register_success.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/register_success.png)
+![register_success.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/register_success.png)
 Sau khi đăng nhập thành công, ta sẽ được chuyển hướng đến Home Page:
-![home_page.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/home_page.png)
+![home_page.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/home_page.png)
 Tại Home Page, ta thấy một dòng chữ "Hello test!" với `test` chính là username ta vừa đăng ký và dùng để đăng nhập. Trong `AuthController`, `username` khi đăng nhập vào sẽ được serialize sau đó base64 và lưu vào cookie có tên `user_session`:
-![debug2_cookie.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_cookie.png)
+![debug2_cookie.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_cookie.png)
 
 Sau khi `username` được serialize, base64 và thêm vào cookie thành công, endpoint `/auth/home` sẽ được gọi đến và quá trình deserialize cookie sẽ diễn ra để đọc username đã được serialize và base64 trước đó rồi hiện "Hello [username]":
-![debug2_deserialize_cookie.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_deserialize_cookie.png)
+![debug2_deserialize_cookie.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_deserialize_cookie.png)
 
-![debug2_deserialize_cookie2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_deserialize_cookie2.png)
+![debug2_deserialize_cookie2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_deserialize_cookie2.png)
 
 Ta cũng có thể kiểm tra cookie trên trình duyệt:
-![cookie_browser.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/cookie_browser.png)
+![cookie_browser.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/cookie_browser.png)
 Giờ ta có thể thay đổi giá trị cookie bằng payload đã được tạo ở [phần 5](#5-tạo-payload-với-ysoserial):
-![cookie_payload.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/cookie_payload.png)
+![cookie_payload.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/cookie_payload.png)
 Khi reload, endpoint `/home` được gọi lại, cookie chứa payload sẽ đi vào method `deserializeFromBase64` để decode base64 và deserialize:
-![debug2_payloadintodeserialize.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_payloadintodeserialize.png)
-![debug2_payloadintodeserializefunc.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_payloadintodeserializefunc.png)
+![debug2_payloadintodeserialize.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_payloadintodeserialize.png)
+![debug2_payloadintodeserializefunc.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_payloadintodeserializefunc.png)
 
 Khi payload đi vào `.readObject()` trong method `deserializeFromBase64`, nó chính là đối tượng đã được tạo sẵn để thực hiện gadget-chain, sẽ ghi đè method `readObject()` trong class `BadAttributeValueExpException`:
-![debug2_readobject_badattr.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_readobject_badattr.png)
+![debug2_readobject_badattr.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_readobject_badattr.png)
 
 Đối tượng `valObj`, lấy từ `gf.get("val", null)` trong `readObject` của `BadAttributeValueExpException`, là giá trị của field `val` từ dữ liệu deserialized. Với payload từ ysoserial, `valObj` là một `TiedMapEntry`, nó kích hoạt `toString()` trong nhánh cuối:
-![debug2_valObj_toString.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_valObj_toString.png)
+![debug2_valObj_toString.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_valObj_toString.png)
 
 Và `valObj` là một `TiedMapEntry`, khi `toString()` được gọi trên `valObj`, phương thức `toString()` của `TiedMapEntry` sẽ được kích hoạt:
-![debug2_tiedmapentry_tostring.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_tiedmapentry_tostring.png)
+![debug2_tiedmapentry_tostring.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_tiedmapentry_tostring.png)
 
 Phương thức `TiedMapEntry.toString()` lần lượt gọi `getKey()` (trả về "foo") và `getValue()`, `getValue()` trả về `map.get(key)`, tức `map.get("foo")`:
-![debug2_tiedmapentry_get.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_tiedmapentry_get.png)
+![debug2_tiedmapentry_get.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_tiedmapentry_get.png)
 
 Vì map là một `LazyMap`, nên `LazyMap.get("foo")` được kích hoạt:
-![debug2_lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_lazymap_get.png)
+![debug2_lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_lazymap_get.png)
 
 Ở đây đoạn code kiểm tra xem có tồn tại key `"foo"` không, và vì map ở đây là một `HashMap` rỗng, chính là đối tượng `innerMap` đã nói ở trên, key không tồn tại nên nó kích hoạt `factory.transform(key)` với factory chính là một `ChainedTransformer` (đối tượng `transformers` trong ysoserial) dẫn đến kích hoạt `ChainedTransformer.transform()`:
-![debug2_chainedtransformer_transform.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_transform.png)
+![debug2_chainedtransformer_transform.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_transform.png)
 
 `iTransformers[]` trong `ChainedTransformer` là một mảng chứa các interface `Transformer`. Các đối tượng này thường là các lớp cụ thể như `ConstantTransformer` hoặc `InvokerTransformer`, được sử dụng để thực hiện một chuỗi transform trên dữ liệu đầu vào.
 
@@ -562,10 +562,10 @@ Chuỗi Transfomer diễn ra như sau:
 - `i = 0`, `object = "foo"`:
 
   Transformer đầu tiên là một `ConstantTransformer`, giá trị được truyền vào (object) là `"foo"`.
-  ![debug2_chainedtransformer_loop_0.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_0.png)
+  ![debug2_chainedtransformer_loop_0.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_0.png)
 
   Method `transform` của class `ConstantTransformer` chỉ nhận input mà không xử lý gì, chỉ return lại `iConstant` đã được setup từ lúc tạo payload.
-  ![debug2_chainedtransformer_loop_0_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_0_1.png)
+  ![debug2_chainedtransformer_loop_0_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_0_1.png)
   Khi kết thúc vòng lặp đầu tiên, `object` là `java.lang.Runtime` hay `Runtime.class`.
 
 <br>
@@ -575,29 +575,29 @@ Chuỗi Transfomer diễn ra như sau:
 `Java Reflection API` là một tập hợp các `class` và `interface` trong gói `java.lang.reflect`, cho phép chương trình kiểm tra và thao tác với `class`, `method`, `field`, `constructor` tại `runtime`, ngay cả khi không biết trước thông tin chi tiết về chúng.
 
 Ở đây, `Java Reflection API` được dùng để gọi gián tiếp một method. API này cho phép gọi một method của bất kỳ class nào. Một ví dụ về invoke có thể lấy method từ class khác:
-![debug2_chainedtransformer_loop_1_6.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_6.png)
+![debug2_chainedtransformer_loop_1_6.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_6.png)
 
 Với cách thông thường:
 
-![debug2_chainedtransformer_loop_1_7.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_7.png)
+![debug2_chainedtransformer_loop_1_7.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_7.png)
 
 Với dùng Reflection:
-![debug2_chainedtransformer_loop_1_8.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_8.png)
+![debug2_chainedtransformer_loop_1_8.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_8.png)
 Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
 
 - `i = 1`, `object = Runtime.class`:
-  ![debug2_chainedtransformer_loop_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1.png)
+  ![debug2_chainedtransformer_loop_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1.png)
 
   Method `transform` trong `InvokerTransformer`:
-  ![debug2_chainedtransformer_loop_1_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_1.png)
+  ![debug2_chainedtransformer_loop_1_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_1.png)
 
   Bước vào phân tích, `input` ban đầu chính là `object` (Runtime.class). Điều kiện if đầu tiên không thỏa mãn, nên chương trình rơi vào khối try:
-  ![debug2_chainedtransformer_loop_1_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_2.png)
+  ![debug2_chainedtransformer_loop_1_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_2.png)
 
   - `Class cls = input.getClass()`:
 
     Method `getClass()` giúp lấy class của đối tượng, ở đây `input` là `Runtime.class` nên `cls` sẽ là class `Class` hay `Class.class`:
-    ![debug2_chainedtransformer_loop_1_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_3.png)
+    ![debug2_chainedtransformer_loop_1_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_3.png)
 
   - `Method method = cls.getMethod(iMethodName, iParamType)`:
 
@@ -608,10 +608,10 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
     `iMethodName` là `"getMethod"`.
 
     `iParamType` là `Class[] { String.class, Class[].class }`.
-    ![debug2_chainedtransformer_loop_1_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_4.png)
+    ![debug2_chainedtransformer_loop_1_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_4.png)
 
     Suy ra `Method method = Class.class.getMethod("getMethod", Class[] { String.class, Class[].class })`, tức `getMethod` sẽ trả về method `getMethod` của class `Class` ⇒ `method` là `Class.getMethod`.
-    ![debug2_chainedtransformer_loop_1_9.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_9.png)
+    ![debug2_chainedtransformer_loop_1_9.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_9.png)
 
   - `return method.invoke(input, iArgs)`:
 
@@ -620,7 +620,7 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
     `input` là `Runtime.class`.
 
     `iArgs` là `Object[] {“getRuntime”, new Class[0] }`.
-    ![debug2_chainedtransformer_loop_1_5.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_5.png)
+    ![debug2_chainedtransformer_loop_1_5.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_5.png)
 
     Với đoạn code cuối cùng sử dụng reflection, nó có thể hiểu thành `Runtime.class.getMethod("getRuntime")`, kết quả trả về là object thuộc kiểu `Method` ⇒ `object` là method `getRuntime` của class `Runtime`.
 
@@ -628,13 +628,13 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
 
 - `i = 2`, `object` là `Method getRuntime()`:
 
-  ![debug2_chainedtransformer_loop_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2.png)
-  ![debug2_chainedtransformer_loop_2_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_1.png)
+  ![debug2_chainedtransformer_loop_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2.png)
+  ![debug2_chainedtransformer_loop_2_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_1.png)
 
   - `Class cls = input.getClass()`:
 
     `input` là method `getRuntime`, mà `getRuntime` là một instance của class `Method` nên `getClass()` sẽ trả về class `Method` ⇒ `cls` là class `Method`:
-    ![debug2_chainedtransformer_loop_2_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_2.png)
+    ![debug2_chainedtransformer_loop_2_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_2.png)
 
   - `Method method = cls.getMethod(iMethodName, iParamTypes)`:
 
@@ -643,9 +643,9 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
     `iMethodName` là `invoke`.
 
     `iParamTypes` là `Class[] { Object.class, Object[].class }`.
-    ![debug2_chainedtransformer_loop_2_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_3.png)
+    ![debug2_chainedtransformer_loop_2_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_3.png)
     Nó tương đương với `Method.class.getMethod("invoke", Class[] { Object.class, Object[].class })`, sẽ trả về method `invoke` của class `Method` ⇒ `method` là `Method.invoke()`
-    ![debug2_chainedtransformer_loop_2_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_4.png)
+    ![debug2_chainedtransformer_loop_2_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_4.png)
 
   - `return method.invoke(input, iArgs)`:
 
@@ -654,7 +654,7 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
     `input` là `Method getRuntime()`.
 
     `iArgs` là `Object[] { null, new Object[0] }`.
-    ![debug2_chainedtransformer_loop_2_5.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_5.png)
+    ![debug2_chainedtransformer_loop_2_5.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_5.png)
 
     Ở bước này, `method` chính là `Method.invoke()`, nên đoạn code có thể hiểu là `getRuntime.invoke(null, null)`, tức là thực thi `Runtime.getRuntime()`.Khi thực thi, nó sẽ gọi `Runtime.getRuntime()` và trả về một instance của `Runtime`. Trong khi đó, ở bước `i = 1`, `object` mới chỉ là method `getRuntime`, tức là một `instance` của `Method`, chưa thực sự được thực thi.
 
@@ -662,13 +662,13 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
 
 - `i = 3`, `object = Runtime.getRuntime()`:
 
-  ![debug2_chainedtransformer_loop_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3.png)
-  ![debug2_chainedtransformer_loop_3_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_1.png)
+  ![debug2_chainedtransformer_loop_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3.png)
+  ![debug2_chainedtransformer_loop_3_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_1.png)
 
   - `Class cls = input.getClass()`:
 
     `input` là `Runtime.getRuntime()`, nên `getClass()` sẽ lấy class của method này ⇒ `cls` là `Runtime.class`.
-    ![debug2_chainedtransformer_loop_3_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_2.png)
+    ![debug2_chainedtransformer_loop_3_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_2.png)
 
   - `Method method = cls.getMethod(iMethodName, iParamTypes)`:
 
@@ -677,10 +677,10 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
     `iMethodName` là `"exec"`.
 
     `iParamTypes` là `Class[] { String.class }`.
-    ![debug2_chainedtransformer_loop_3_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_3.png)
+    ![debug2_chainedtransformer_loop_3_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_3.png)
 
     `getMethod()` sẽ lấy method `exec` của class `Runtime` ⇒ `method` là `Runtime.exec()`.
-    ![debug2_chainedtransformer_loop_3_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_4.png)
+    ![debug2_chainedtransformer_loop_3_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_4.png)
 
   - `return method.invoke(input, iArgs)`:
 
@@ -689,13 +689,13 @@ Tức `method.invoke(obj, param)` tương đương với `obj.method(param)`
     `input` là `Runtime.getRuntime()`.
 
     `iArgs` là `execArgs` chính là command mà ta muốn thực thi.
-    ![debug2_chainedtransformer_loop_3_5.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_5.png)
+    ![debug2_chainedtransformer_loop_3_5.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_5.png)
 
     Nó sẽ thực thi `Runtime.getRuntime().exec(execArgs)`
-    ![debug2_chainedtransformer_loop_3_6.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_6.png)
+    ![debug2_chainedtransformer_loop_3_6.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_6.png)
 
     và RCE
-    ![debug2_chainedtransformer_loop_3_7.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_7.png)
+    ![debug2_chainedtransformer_loop_3_7.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_7.png)
     Lần này, nó trả về một instance của `Process` đại diện cho tiến trình vừa được tạo.
 
 <br>
@@ -704,31 +704,31 @@ Transformer cuối cùng là một `ConstantTransformer`
 
 - `i = 4`, `object` là một instance của `Process`(UNIXProcess):
 
-  ![debug2_chainedtransformer_loop_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_4.png)
+  ![debug2_chainedtransformer_loop_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_4.png)
 
   `ConstantTransformer` trả về giá trị cố định bất kể đầu vào, nên nó trả về 1 để kết thúc chuỗi Transformer, tránh gây lỗi khi không cần thêm hành động.
-  ![debug2_chainedtransformer_loop_4_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_4_1.png)
+  ![debug2_chainedtransformer_loop_4_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_4_1.png)
 
 Tiếp theo, khi `i = 5`, vòng lặp đã chạy hết mảng `iTransformers`, nó trả về `object` mang giá trị của `Transformer` cuối cùng trả về là `1`.
-![debug2_chainedtransformer_loop_4_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_4_2.png)
+![debug2_chainedtransformer_loop_4_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_4_2.png)
 
 Khi này quay lại `LazyMap`, `value` mang giá trị trả về khi kết thúc chuỗi Transformer là `1`, key `"foo"` được thêm vào map (đối tượng `innerMap` từ payload - một HashMap) và return `value` (1).
-![debug2_lazymap_putkey.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_lazymap_putkey.png)
+![debug2_lazymap_putkey.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_lazymap_putkey.png)
 
 Đến TiedMapEntry, 2 method `getKey()` và `getValue` xong
-![tiedmapentry_return.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/tiedmapentry_return.png)
+![tiedmapentry_return.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/tiedmapentry_return.png)
 `getKey()` trả về `"foo"`, `getValue()` trả về `1` ⇒ `TiedMapEntry.toString()` trả về `"foo=1"`
 
 Tiếp đến `BadAttributeExpException`, khi này `val` sẽ mang giá trị là `"foo=1"`
-![val_value.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/val_value.png)
+![val_value.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/val_value.png)
 
 Và cuối cùng là quay lại `AuthController`, nó return lại đối tượng đã được deserialize
-![authcontroller_return.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/authcontroller_return.png)
+![authcontroller_return.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/authcontroller_return.png)
 và tiếp tục ứng dụng.
-![web_running.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/web_running.png)
+![web_running.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/web_running.png)
 
 Trên trang web chữ "Invalid Cookie" hiện ra, nhưng ta đã exploit thành công.
-![invalid_cookie.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/invalid_cookie.png)
+![invalid_cookie.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/invalid_cookie.png)
 
 ---
 

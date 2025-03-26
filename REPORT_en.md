@@ -94,7 +94,7 @@ The application uses `Apache Commons Collections 3.1`, an old library containing
 
 At the `/login` and `/home` endpoints, the cookie processing is affected by deserialization without adequate security checks. The cookie processing code is shown below:
 
-![serial_deserial.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/serial_deserial.png)
+![serial_deserial.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/serial_deserial.png)
 
 <div align="center">
 
@@ -103,7 +103,7 @@ _Serialize and Deserialize methods with base64 encoding_
 </div>
 <br><br>
 
-![login_home.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/login_home.png)
+![login_home.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/login_home.png)
 
 <div align="center">
 
@@ -137,7 +137,7 @@ In the context of **Insecure Deserialization**, a **gadget-chain** is a sequence
 
 ## **4.2. Detailed Analysis**
 
-![gadget_chain.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/gadget_chain.png)
+![gadget_chain.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/gadget_chain.png)
 
 <div align="center">
 
@@ -146,7 +146,7 @@ _CommonsCollections5 Gadget-Chain_
 </div>
 <br></br>
 
-![code_gen_payload.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/code_gen_payload.png)
+![code_gen_payload.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/code_gen_payload.png)
 
 <div align="center">
 
@@ -158,28 +158,28 @@ _Code that generates the payload_
 
 ### #1 Command Input
 
-![command.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/command.png)
+![command.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/command.png)
 
 The `execArgs` object is created with the String type with the value being the `command` provided by the user, depending on the command the payload creator wants to execute.
 
-![debug command](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_command.png)
+![debug command](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_command.png)
 
 ---
 
 ### #2 Initializing the Transformer
 
-![fake_transform.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/fake_transform.png)
+![fake_transform.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/fake_transform.png)
 `Transformer` is an interface with the method `transform(Object input)`, which takes an input value and returns a different value. Here the `transformerChain` object is initialized as a `ChainedTransformer` which is a subclass of Transformer, containing a `ConstantTransformer(1)`. `ChainedTransformer` is a special Transformer that takes a list of `Transformer[]` and calls each Transformer sequentially.
 
 Initially, we only initialize `ConstantTransformer(1)` because it only returns 1, making it harmless and avoiding premature payload execution. We'll replace it with the actual payload later.
 
-![debug_fake_chain.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_fake_chain.png)
+![debug_fake_chain.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_fake_chain.png)
 
 ---
 
 ### #3 The Real Transformer Chain
 
-![real_transformer.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/real_transformer.png)
+![real_transformer.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/real_transformer.png)
 The `transformers` object is initialized as an array of Transformer[] with 5 component Transformers, in sequence:
 
 ```java
@@ -188,7 +188,7 @@ new ConstantTransformer(Runtime.class)
 
 `ConstantTransformer` is a Transformer that returns a specific value, in this case it returns `Runtime.class`
 
-![debug_runtimeclass.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_runtimeclass.png)
+![debug_runtimeclass.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_runtimeclass.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -253,7 +253,7 @@ new Object[] { "getRuntime", new Class[0] }
 
 After running through this `InvokerTransformer`, it returns `Runtime.getRuntime()` to prepare to call the `exec` method.
 
-![debug_getruntime.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_getruntime.png)
+![debug_getruntime.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_getruntime.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -266,7 +266,7 @@ new InvokerTransformer("invoke", new Class[] {
 
 The function and structure are still the same as the `InvokerTransformer` above. This time, it has the task of executing `Runtime.getRuntime()` to get the `Runtime` object.
 
-![debug_invoke.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_invoke.png)
+![debug_invoke.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_invoke.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -276,7 +276,7 @@ new InvokerTransformer("exec", new Class[] { String.class }, execArgs)
 
 With the final `InvokerTransformer`, it calls the `exec()` method of the `Runtime` object (`Runtime().getRuntime().exec(command)` or `Runtime().exec(command)`) to execute the provided command.
 
-![debug_exec.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_exec.png)
+![debug_exec.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_exec.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -286,13 +286,13 @@ new ConstantTransformer(1)
 
 The final _ConstantTransformer_ returns **1** to finish and avoid errors.
 
-![debug_endconst.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_endconst.png)
+![debug_endconst.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_endconst.png)
 
 ---
 
 ### #4. Creating LazyMap and TiedMapEntry
 
-![lazymap_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/lazymap_tiedmap.png)
+![lazymap_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/lazymap_tiedmap.png)
 
 ```java
 final Map innerMap = new HashMap();
@@ -306,7 +306,7 @@ The `innerMap` object is a regular `HashMap`, initially empty and without any sp
 - The actual data is still stored in `innerMap`.
 - `transformerChain` acts as a factory: When a key doesn't exist in innerMap, instead of returning null, LazyMap will call `transformerChain.transform(key)` to create the corresponding value. Initially, `transformerChain` is just a fake chain, returning only `1`, but it will be replaced with the real chain later.
 
-![debug_lazymap.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_lazymap.png)
+![debug_lazymap.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_lazymap.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -316,13 +316,13 @@ TiedMapEntry entry = new TiedMapEntry(lazyMap, "foo");
 
 `TiedMapEntry` is also a class in `Apache Commons Collections`, designed to link a Map with a specific key. The `entry` object created is a `TiedMapEntry` that connects `lazyMap` with the key `"foo"`. When `entry.toString()` is called, it will call `lazyMap.get()` because the key "foo" doesn't exist yet, and `transformerChain.transform()` will be called, triggering the gadget-chain.
 
-![debug_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_tiedmap.png)
+![debug_tiedmap.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_tiedmap.png)
 
 ---
 
 ### #5. Assigning to `BadAttributeValueExpException` for Automatic Triggering
 
-![BadAttribute.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/BadAttribute.png)
+![BadAttribute.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/BadAttribute.png)
 
 ```java
 BadAttributeValueExpException val = new BadAttributeValueExpException(null);
@@ -330,7 +330,7 @@ BadAttributeValueExpException val = new BadAttributeValueExpException(null);
 
 `BadAttributeValueExpException` is a class in Java, used when there's an error in the value of an attribute. `val` is an object of this class. Here, when initializing the `val` object, we pass `null` because this value will be changed later to override the `toString()` method, causing the `toString()` of `TiedMapEntry` to be triggered.
 
-![debug_val.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_val.png)
+![debug_val.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_val.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -340,7 +340,7 @@ Field valfield = val.getClass().getDeclaredField("val");
 
 The `valfield` object belongs to the `Field` class. The `getClass()` method returns a Class object representing the class of `val` (BadAttributeValueExpException). The `getDeclaredField(String fieldName)` method is a method of the `Class` class, helping to get information about a specific field in the class. It returns a Field object containing information about the "val" field, whether it's private, protected, or public.
 
-![debug_valfield.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_valfield.png)
+![debug_valfield.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_valfield.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -369,7 +369,7 @@ The `setAccessible()` method is a wrapper that calls `setAccessible(true)` from 
 
 The `setAccessible()` called here helps to change the value of the private field `val`.
 
-![debug_setAccess.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_setAccess.png)
+![debug_setAccess.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_setAccess.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -379,7 +379,7 @@ valfield.set(val, entry);
 
 The `set(Object obj, Object value)` method of the `Field` class sets the value of the `val` field in the `val` object to `entry`. `entry` was previously assigned as a `TiedMapEntry`.
 
-![debug_setField.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_setField.png)
+![debug_setField.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_setField.png)
 
 <div style="width: 350px; height: 0.5px; background-color: black; margin: 15px auto;"></div>
 
@@ -398,7 +398,7 @@ public static void setFieldValue(final Object obj, final String fieldName, final
 
 `setFieldValue(obj, fieldName, value)` has the main function of finding and changing the value of a private or protected field - fields that normally cannot be accessed from outside the class - in an object. In this case, it sets the value of `iTransformers` in `transformerChain` (fake chain) to `transformers` (real chain).
 
-![debug_replace.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug_replace.png)
+![debug_replace.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug_replace.png)
 
 ### #6. Conclusion
 
@@ -452,7 +452,7 @@ Using `CommonsCollections5` as an example, which was analyzed in this report, in
 java8 -jar ysoserial-all.jar CommonsCollections5 'sh -c $@|sh . echo open -a Calculator'
 ```
 
-![payload.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/payload.png)
+![payload.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/payload.png)
 
 In the web application demonstrating the deserialization vulnerability, user data is serialized then base64 encoded before being stored in a cookie, so when creating the payload, it also needs to be base64 encoded to be inserted into the cookie, as the payload will be base64 decoded then deserialized.
 
@@ -470,7 +470,7 @@ Article link: https://codewhitesec.blogspot.com/2015/03/sh-or-getting-shell-envi
 
 Tool to help create runtime.exec payloads faster: https://ares-x.com/tools/runtime-exec/
 
-![tool_runtime.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/tool_runtime.png)
+![tool_runtime.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/tool_runtime.png)
 
 ---
 
@@ -483,75 +483,75 @@ In the process of debugging the demo website, we use IntelliJ IDEA to leverage c
 To debug effectively, breakpoints are set at key points in the application and the `CommonsCollections5` gadget-chain to monitor the execution flow from cookie deserialization to RCE.
 
 - **/login Endpoint**: Set a breakpoint to see the username value during login, observe it being serialized and added to the `user_session` cookie.
-  ![endpoint_login.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/endpoint_login.png)
+  ![endpoint_login.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/endpoint_login.png)
 
 - **/home Endpoint**: Breakpoint at the cookie processing step before deserialization, confirming the input data.
-  ![endpoint_home.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/endpoint_home.png)
+  ![endpoint_home.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/endpoint_home.png)
 
 - **Deserialize cookie**: Breakpoint at the step of deserializing the user_session cookie to see the payload being passed in.
-  ![deserialize.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/deserialize.png)
+  ![deserialize.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/deserialize.png)
 
 - `CommonsCollections5` Gadget-chain: Breakpoints in the main classes:
 
   - `BadAttributeValueExpException.readObject()`:
-    ![badattribute2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/badattribute2.png)
+    ![badattribute2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/badattribute2.png)
 
   - `TiedMapEntry.toString()`,`TiedMapEntry.getKey()` and `TiedMapEntry.getValue()`: Monitor LazyMap activation.
-    ![TiedMapEntry_toString.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/TiedMapEntry_toString.png)
-    ![TiedMapEntry_getValue.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/TiedMapEntry_getValue.png)
+    ![TiedMapEntry_toString.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/TiedMapEntry_toString.png)
+    ![TiedMapEntry_getValue.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/TiedMapEntry_getValue.png)
 
   - `LazyMap.get()`: Preparing to activate ChainedTransformer
-    ![lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/lazymap_get.png)
+    ![lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/lazymap_get.png)
   - `ChainedTransformer.transform()`: Analyze each transformer step.
-    ![ChainedTransformer.tranform()](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/chainedtransformer_transform.png)
+    ![ChainedTransformer.tranform()](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/chainedtransformer_transform.png)
   - `ConstantTransformer.transform()`:
-    ![constanttransformer.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/constanttransformer.png)
+    ![constanttransformer.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/constanttransformer.png)
   - `InvokerTransformer.transform()`: View the system command being executed.
-    ![invokertransformer.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/invokertransformer.png)
+    ![invokertransformer.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/invokertransformer.png)
 
 ## **6.2. Detailed Debugging of the Execution Flow**
 
 When accessing the website, the login page appears first:
-![login_page.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/login_page.png)
+![login_page.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/login_page.png)
 We'll register before logging in, registration page:
-![register_page.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/register_page.png)
+![register_page.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/register_page.png)
 When sign up is successful, the website reports "Registration Successfully":
-![register_success.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/register_success.png)
+![register_success.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/register_success.png)
 After successful login, we'll be redirected to the Home Page:
-![home_page.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/home_page.png)
+![home_page.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/home_page.png)
 On the Home Page, we see a line saying "Hello test!" with `test` being the username we just registered and used to log in. In `AuthController`, the `username` when logging in will be serialized then base64 encoded and stored in a cookie named `user_session`:
-![debug2_cookie.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_cookie.png)
+![debug2_cookie.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_cookie.png)
 
 After the `username` is successfully serialized, base64 encoded and added to the cookie, the `/auth/home` endpoint will be called and the process of deserializing the cookie will take place to read the username that was previously serialized and base64 encoded, then display "Hello [username]":
-![debug2_deserialize_cookie.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_deserialize_cookie.png)
+![debug2_deserialize_cookie.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_deserialize_cookie.png)
 
-![debug2_deserialize_cookie2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_deserialize_cookie2.png)
+![debug2_deserialize_cookie2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_deserialize_cookie2.png)
 
 We can also check the cookie in the browser:
-![cookie_browser.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/cookie_browser.png)
+![cookie_browser.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/cookie_browser.png)
 Now we can change the cookie value with the payload created in [section 5](#5-creating-payloads-with-ysoserial):
-![cookie_payload.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/cookie_payload.png)
+![cookie_payload.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/cookie_payload.png)
 When reloading, the `/home` endpoint is called again, the cookie containing the payload will go into the `deserializeFromBase64` method to decode base64 and deserialize:
-![debug2_payloadintodeserialize.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_payloadintodeserialize.png)
-![debug2_payloadintodeserializefunc.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_payloadintodeserializefunc.png)
+![debug2_payloadintodeserialize.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_payloadintodeserialize.png)
+![debug2_payloadintodeserializefunc.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_payloadintodeserializefunc.png)
 
 When the payload goes into `.readObject()` in the `deserializeFromBase64` method, it is the object that was pre-created to execute the gadget-chain, which will override the `readObject()` method in the `BadAttributeValueExpException` class:
-![debug2_readobject_badattr.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_readobject_badattr.png)
+![debug2_readobject_badattr.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_readobject_badattr.png)
 
 The `valObj` object, taken from `gf.get("val", null)` in `readObject` of `BadAttributeValueExpException`, is the value of the `val` field from the deserialized data. With the payload from ysoserial, `valObj` is a `TiedMapEntry`, it activates `toString()` in the final branch:
-![debug2_valObj_toString.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_valObj_toString.png)
+![debug2_valObj_toString.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_valObj_toString.png)
 
 And `valObj` is a `TiedMapEntry`, when `toString()` is called on `valObj`, the `toString()` method of `TiedMapEntry` will be activated:
-![debug2_tiedmapentry_tostring.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_tiedmapentry_tostring.png)
+![debug2_tiedmapentry_tostring.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_tiedmapentry_tostring.png)
 
 The `TiedMapEntry.toString()` method successively calls `getKey()` (returns "foo") and `getValue()`, `getValue()` returns `map.get(key)`, which is `map.get("foo")`:
-![debug2_tiedmapentry_get.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_tiedmapentry_get.png)
+![debug2_tiedmapentry_get.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_tiedmapentry_get.png)
 
 Because map is a `LazyMap`, `LazyMap.get("foo")` is activated:
-![debug2_lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_lazymap_get.png)
+![debug2_lazymap_get.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_lazymap_get.png)
 
 Here, the code checks whether the key `"foo"` exists, and because the map here is an empty `HashMap`, which is the `innerMap` object mentioned above, the key doesn't exist, so it activates `factory.transform(key)` with factory being a `ChainedTransformer` (the `transformers` object in ysoserial) leading to the activation of `ChainedTransformer.transform()`:
-![debug2_chainedtransformer_transform.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_transform.png)
+![debug2_chainedtransformer_transform.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_transform.png)
 
 `iTransformers[]` in `ChainedTransformer` is an array containing `Transformer` interfaces. These objects are typically concrete classes like `ConstantTransformer` or `InvokerTransformer`, used to perform a series of transformations on the input data.
 
@@ -562,10 +562,10 @@ The Transformer chain proceeds as follows:
 - `i = 0`, `object = "foo"`:
 
   The first Transformer is a `ConstantTransformer`, the value passed in (object) is `"foo"`.
-  ![debug2_chainedtransformer_loop_0.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_0.png)
+  ![debug2_chainedtransformer_loop_0.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_0.png)
 
   The `transform` method of the `ConstantTransformer` class only receives input without processing it, just returning the `iConstant` that was set up when creating the payload.
-  ![debug2_chainedtransformer_loop_0_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_0_1.png)
+  ![debug2_chainedtransformer_loop_0_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_0_1.png)
   When the first loop ends, `object` is `java.lang.Runtime` or `Runtime.class`.
 
 <br>
@@ -575,29 +575,29 @@ The next 3 Transformers are `InvokerTransformer`. `InvokerTransformer` is a clas
 The `Java Reflection API` is a collection of `classes` and `interfaces` in the `java.lang.reflect` package, allowing programs to inspect and manipulate `classes`, `methods`, `fields`, `constructors` at `runtime`, even when detailed information about them is not known in advance.
 
 Here, the `Java Reflection API` is used to indirectly call a method. This API allows calling a method of any class. An example of invoke can get a method from another class:
-![debug2_chainedtransformer_loop_1_6.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_6.png)
+![debug2_chainedtransformer_loop_1_6.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_6.png)
 
 With the conventional way:
 
-![debug2_chainedtransformer_loop_1_7.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_7.png)
+![debug2_chainedtransformer_loop_1_7.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_7.png)
 
 Using Reflection:
-![debug2_chainedtransformer_loop_1_8.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_8.png)
+![debug2_chainedtransformer_loop_1_8.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_8.png)
 That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
 
 - `i = 1`, `object = Runtime.class`:
-  ![debug2_chainedtransformer_loop_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1.png)
+  ![debug2_chainedtransformer_loop_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1.png)
 
   The `transform` method in `InvokerTransformer`:
-  ![debug2_chainedtransformer_loop_1_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_1.png)
+  ![debug2_chainedtransformer_loop_1_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_1.png)
 
   Going into the analysis, the initial `input` is `object` (Runtime.class). The first if condition is not satisfied, so the program falls into the try block:
-  ![debug2_chainedtransformer_loop_1_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_2.png)
+  ![debug2_chainedtransformer_loop_1_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_2.png)
 
   - `Class cls = input.getClass()`:
 
     The `getClass()` method helps get the class of the object, here `input` is `Runtime.class` so `cls` will be class `Class` or `Class.class`:
-    ![debug2_chainedtransformer_loop_1_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_3.png)
+    ![debug2_chainedtransformer_loop_1_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_3.png)
 
   - `Method method = cls.getMethod(iMethodName, iParamType)`:
 
@@ -608,10 +608,10 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
     `iMethodName` is `"getMethod"`.
 
     `iParamType` is `Class[] { String.class, Class[].class }`.
-    ![debug2_chainedtransformer_loop_1_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_4.png)
+    ![debug2_chainedtransformer_loop_1_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_4.png)
 
     It follows that `Method method = Class.class.getMethod("getMethod", Class[] { String.class, Class[].class })`, so `getMethod` will return the `getMethod` method of the `Class` class => `method` is `Class.getMethod`.
-    ![debug2_chainedtransformer_loop_1_9.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_9.png)
+    ![debug2_chainedtransformer_loop_1_9.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_9.png)
 
   - `return method.invoke(input, iArgs)`:
 
@@ -620,7 +620,7 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
     `input` is `Runtime.class`.
 
     `iArgs` is `Object[] {"getRuntime", new Class[0] }`.
-    ![debug2_chainedtransformer_loop_1_5.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_1_5.png)
+    ![debug2_chainedtransformer_loop_1_5.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_1_5.png)
 
     With the final code using reflection, it can be understood as `Runtime.class.getMethod("getRuntime")`, the result returned is an object of type `Method` => `object` is the `getRuntime` method of the `Runtime` class.
 
@@ -628,13 +628,13 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
 
 - `i = 2`, `object` is `Method getRuntime()`:
 
-  ![debug2_chainedtransformer_loop_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2.png)
-  ![debug2_chainedtransformer_loop_2_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_1.png)
+  ![debug2_chainedtransformer_loop_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2.png)
+  ![debug2_chainedtransformer_loop_2_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_1.png)
 
   - `Class cls = input.getClass()`:
 
     `input` is the `getRuntime` method, and `getRuntime` is an instance of the `Method` class, so `getClass()` will return the class `Method` => `cls` is the class `Method`:
-    ![debug2_chainedtransformer_loop_2_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_2.png)
+    ![debug2_chainedtransformer_loop_2_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_2.png)
 
   - `Method method = cls.getMethod(iMethodName, iParamTypes)`:
 
@@ -643,9 +643,9 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
     `iMethodName` is `invoke`.
 
     `iParamTypes` is `Class[] { Object.class, Object[].class }`.
-    ![debug2_chainedtransformer_loop_2_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_3.png)
+    ![debug2_chainedtransformer_loop_2_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_3.png)
     It is equivalent to `Method.class.getMethod("invoke", Class[] { Object.class, Object[].class })`, will return the `invoke` method of the `Method` class => `method` is `Method.invoke()`
-    ![debug2_chainedtransformer_loop_2_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_4.png)
+    ![debug2_chainedtransformer_loop_2_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_4.png)
 
   - `return method.invoke(input, iArgs)`:
 
@@ -654,7 +654,7 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
     `input` is `Method getRuntime()`.
 
     `iArgs` is `Object[] { null, new Object[0] }`.
-    ![debug2_chainedtransformer_loop_2_5.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_2_5.png)
+    ![debug2_chainedtransformer_loop_2_5.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_2_5.png)
 
     At this step, `method` is `Method.invoke()`, so the code can be understood as `getRuntime.invoke(null, null)`, which is executing `Runtime.getRuntime()`. When executed, it will call `Runtime.getRuntime()` and return an instance of `Runtime`. Meanwhile, at step `i = 1`, `object` was only the `getRuntime` method, that is, an `instance` of `Method`, not actually executed.
 
@@ -662,13 +662,13 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
 
 - `i = 3`, `object = Runtime.getRuntime()`:
 
-  ![debug2_chainedtransformer_loop_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3.png)
-  ![debug2_chainedtransformer_loop_3_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_1.png)
+  ![debug2_chainedtransformer_loop_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3.png)
+  ![debug2_chainedtransformer_loop_3_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_1.png)
 
   - `Class cls = input.getClass()`:
 
     `input` is `Runtime.getRuntime()`, so `getClass()` will get the class of this method => `cls` is `Runtime.class`.
-    ![debug2_chainedtransformer_loop_3_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_2.png)
+    ![debug2_chainedtransformer_loop_3_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_2.png)
 
   - `Method method = cls.getMethod(iMethodName, iParamTypes)`:
 
@@ -677,10 +677,10 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
     `iMethodName` is `"exec"`.
 
     `iParamTypes` is `Class[] { String.class }`.
-    ![debug2_chainedtransformer_loop_3_3.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_3.png)
+    ![debug2_chainedtransformer_loop_3_3.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_3.png)
 
     `getMethod()` will get the `exec` method of the `Runtime` class => `method` is `Runtime.exec()`.
-    ![debug2_chainedtransformer_loop_3_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_4.png)
+    ![debug2_chainedtransformer_loop_3_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_4.png)
 
   - `return method.invoke(input, iArgs)`:
 
@@ -689,13 +689,13 @@ That is, `method.invoke(obj, param)` is equivalent to `obj.method(param)`
     `input` is `Runtime.getRuntime()`.
 
     `iArgs` is `execArgs` which is the command we want to execute.
-    ![debug2_chainedtransformer_loop_3_5.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_5.png)
+    ![debug2_chainedtransformer_loop_3_5.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_5.png)
 
     It will execute `Runtime.getRuntime().exec(execArgs)`
-    ![debug2_chainedtransformer_loop_3_6.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_6.png)
+    ![debug2_chainedtransformer_loop_3_6.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_6.png)
 
     and RCE
-    ![debug2_chainedtransformer_loop_3_7.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_3_7.png)
+    ![debug2_chainedtransformer_loop_3_7.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_3_7.png)
     This time, it returns an instance of `Process` representing the process just created.
 
 <br>
@@ -704,31 +704,31 @@ The final Transformer is a `ConstantTransformer`
 
 - `i = 4`, `object` is an instance of `Process`(UNIXProcess):
 
-  ![debug2_chainedtransformer_loop_4.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_4.png)
+  ![debug2_chainedtransformer_loop_4.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_4.png)
 
   `ConstantTransformer` returns a fixed value regardless of the input, so it returns 1 to end the Transformer chain, avoiding errors when no more actions are needed.
-  ![debug2_chainedtransformer_loop_4_1.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_4_1.png)
+  ![debug2_chainedtransformer_loop_4_1.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_4_1.png)
 
 Next, when `i = 5`, the loop has gone through the entire `iTransformers` array, it returns `object` carrying the value of the last `Transformer` returned, which is `1`.
-![debug2_chainedtransformer_loop_4_2.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_chainedtransformer_loop_4_2.png)
+![debug2_chainedtransformer_loop_4_2.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_chainedtransformer_loop_4_2.png)
 
 At this point, back to `LazyMap`, `value` carries the value returned at the end of the Transformer chain, which is `1`, the key `"foo"` is added to the map (the `innerMap` object from the payload - a HashMap) and returns `value` (1).
-![debug2_lazymap_putkey.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/debug2_lazymap_putkey.png)
+![debug2_lazymap_putkey.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/debug2_lazymap_putkey.png)
 
 To TiedMapEntry, the 2 methods `getKey()` and `getValue` are done
-![tiedmapentry_return.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/tiedmapentry_return.png)
+![tiedmapentry_return.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/tiedmapentry_return.png)
 `getKey()` returns `"foo"`, `getValue()` returns `1` => `TiedMapEntry.toString()` returns `"foo=1"`
 
 Next to `BadAttributeExpException`, now `val` will have the value `"foo=1"`
-![val_value.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/val_value.png)
+![val_value.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/val_value.png)
 
 And finally back to `AuthController`, it returns the object that has been deserialized
-![authcontroller_return.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/authcontroller_return.png)
+![authcontroller_return.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/authcontroller_return.png)
 and continues the application.
-![web_running.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/web_running.png)
+![web_running.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/web_running.png)
 
 On the web page, "Invalid Cookie" appears, but we have successfully exploited it.
-![invalid_cookie.png](https://raw.githubusercontent.com/a-tt-om/JavaInsecureDeserialization/main/image/invalid_cookie.png)
+![invalid_cookie.png](https://raw.githubusercontent.com/a-tt-om/Analyze-CommonsCollections5-gadget-chain/main/image/invalid_cookie.png)
 
 ---
 
